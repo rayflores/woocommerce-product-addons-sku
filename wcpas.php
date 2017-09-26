@@ -10,6 +10,7 @@ Author URI: http://rayflores.com
 /**
  * Add sku addon field
  */
+add_action('woocommerce_product_addons_panel_option_row', 'apg_add_checkbox_sku_field', 10, 4);
 function apg_add_checkbox_sku_field($post, $product_addons, $loop, $option) {
     wp_enqueue_media();
     ob_start();
@@ -23,17 +24,19 @@ function apg_add_checkbox_sku_field($post, $product_addons, $loop, $option) {
     echo $output;
 
 }
-add_action('woocommerce_product_addons_panel_option_row', 'apg_add_checkbox_sku_field', 10, 4);
+
 /**
  * Add checkbox headings to addon fields
  */
+add_action('woocommerce_product_addons_panel_option_heading', 'apg_add_checkbox_heading_fields', 10, 3);
 function apg_add_checkbox_heading_fields($post, $addon, $loop) {
     echo '<th class="checkbox_column"><span class="column-title">Sku</span></th>';
 }
-add_action('woocommerce_product_addons_panel_option_heading', 'apg_add_checkbox_heading_fields', 10, 3);
+
 /**
  * Save sku addon field
  */
+add_filter('woocommerce_product_addons_save_data', 'apg_save_checkbox_sku_field', 10, 2);
 function apg_save_checkbox_sku_field($data, $i) {
     $addon_option_sku = $_POST['product_addon_option_sku'];
 	$addon_name         = $_POST['product_addon_name'];
@@ -43,4 +46,31 @@ function apg_save_checkbox_sku_field($data, $i) {
     }
     return $data;
 }
-add_filter('woocommerce_product_addons_save_data', 'apg_save_checkbox_sku_field', 10, 2);
+
+/**
+ * Add Sku to Cart Item Meta
+ * Also saves in order meta
+ */
+add_filter( 'woocommerce_product_addon_cart_item_data', 'apg_save_cart_item_data', 10, 4);
+function apg_save_cart_item_data( $data, $addon, $product_id, $post_data ){
+	
+	$product_addons = get_product_addons( $product_id );
+
+	$value = isset( $post_data[ 'addon-' . $addon['field-name'] ] ) ? $post_data[ 'addon-' . $addon['field-name'] ] : '';
+	if ( is_array( $value ) ) {
+		$value = array_map( 'stripslashes', $value );
+	} else {
+		$value = stripslashes( $value );
+	}
+	foreach ( $addon['options'] as $option ) {
+				if ( in_array( strtolower( sanitize_title( $option['label'] ) ), array_map( 'strtolower', array_values( $value ) ) ) ) {
+					$cart_item_data[] = array(
+						'name'  => $addon['name'],
+						'value' => $option['label'] . ': Sku:' . $option['sku'],
+						'price' => $option['price'],
+						'sku' => $option['sku']
+					);
+				}
+			}		
+	return $cart_item_data;
+}
