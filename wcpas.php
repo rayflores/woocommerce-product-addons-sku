@@ -14,7 +14,8 @@ add_action('woocommerce_product_addons_panel_option_row', 'apg_add_checkbox_sku_
 function apg_add_checkbox_sku_field($post, $product_addons, $loop, $option) {
     wp_enqueue_media();
     ob_start();
-	$value = esc_attr( wc_format_localized_price( $option['sku'] ) );
+	
+	$value = isset( $option['sku'] ) ? esc_attr( wc_format_localized_price( $option['sku'] ) ) : '';
     ?>
     <td class="checkbox_column">
         <input type="text" class="sku" name="product_addon_option_sku[<?php echo $loop; ?>][]" value="<?php echo $value; ?>"/>
@@ -38,12 +39,30 @@ function apg_add_checkbox_heading_fields($post, $addon, $loop) {
  */
 add_filter('woocommerce_product_addons_save_data', 'apg_save_checkbox_sku_field', 10, 2);
 function apg_save_checkbox_sku_field($data, $i) {
+	
     $addon_option_sku = $_POST['product_addon_option_sku'];
 	$addon_name         = $_POST['product_addon_name'];
-    for ( $i = 0; $i < sizeof( $addon_name ); $i++ ) {
-        $sku    = sanitize_text_field( stripslashes( $addon_option_sku[ $i ] ) );
-        $data['options'][$i]['sku'] = $sku;
-    }
+	$addon_option_label = $_POST['product_addon_option_label'];
+	
+	//print_r(sizeof( $addon_name )); die('here');
+	
+	for ( $i = 0; $i < sizeof( $addon_name ); $i++ ) {
+
+		if ( ! isset( $addon_name[ $i ] ) || ( '' == $addon_name[ $i ] ) ) {
+			continue;
+		}
+
+		$addon_options 	= array();
+		$option_label  	= $addon_option_label[ $i ];
+		$option_sku  	= $addon_option_sku[ $i ];
+
+		for ( $ii = 0; $ii < sizeof( $option_label ); $ii++ ) {
+			$sku    = sanitize_text_field( $option_sku[ $ii ] );
+			$data['options'][$ii]['sku'] = $sku;
+		}
+	}
+				
+
     return $data;
 }
 
