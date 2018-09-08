@@ -6,6 +6,9 @@ Description: Add skus to product addons ( backend options )
 Version: 0.1.0
 Author: Ray Flores
 Author URI: http://rayflores.com
+*********************
+INSPRIRATION: https://echo5digital.com/blog/how-to-add-images-to-your-woocommerce-product-addons/
+*********************
 */
 /**
  * Add sku addon field
