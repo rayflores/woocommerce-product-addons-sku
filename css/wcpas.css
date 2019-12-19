@@ -1,0 +1,28 @@
+.wc-pao-addon-content label {
+    float: none!important;
+    margin-left: 0!important;
+}
+.wc-pao-addon-content-price-header {
+    padding-top: 8px;
+    grid-column: 8/span 3;
+    background-color: #f5f5f5;
+    margin-right: -15px;
+}
+.wc-pao-addon-content-price-type {
+    align-self: center;
+    grid-column: 8/10;
+}
+.wc-pao-addon-content-price {
+    align-self: center;
+    grid-column: 10/11;
+}
+.wc-pao-addon-content-sku-header {
+    padding-top: 8px;
+    grid-column: 11/span 3;
+    background-color: #f5f5f5;
+    margin-right: -15px;
+}
+.wc-pao-addon-content-sku {
+    align-self: center;
+    grid-column: 11/span 2;
+}
