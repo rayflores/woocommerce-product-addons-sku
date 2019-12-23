@@ -3,7 +3,7 @@
 	Plugin Name:  WooCommerce Product Addons Skus
 	Plugin URI: https://rayflores.com/plugins/wcpas/
 	Description: Add skus to product addons ( backend options )
-	Version: 0.3.4
+	Version: 0.4.0
 	Author: Ray Flores
 	Author URI: http://rayflores.com
 	*/
