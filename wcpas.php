@@ -3,7 +3,7 @@
 	Plugin Name:  WooCommerce Product Addons Skus
 	Plugin URI: https://rayflores.com/plugins/wcpas/
 	Description: Add skus to product addons ( backend options )
-	Version: 0.3.3
+	Version: 0.3.4
 	Author: Ray Flores
 	Author URI: http://rayflores.com
 	*/
@@ -125,18 +125,9 @@
 	 */
 	add_filter( 'woocommerce_product_addon_cart_item_data', 'apg_save_cart_item_data', 10, 4);
 	function apg_save_cart_item_data( $data, $addon, $product_id, $post_data ){
-		
-		$product_addons = get_product_addons( $product_id );
-		
-		$value = isset( $post_data[ 'addon-' . $addon['field-name'] ] ) ? $post_data[ 'addon-' . $addon['field-name'] ] : '';
-		if ( is_array( $value ) ) {
-			$value = array_map( 'stripslashes', $value );
-		} else {
-			$value = stripslashes( $value );
-		}
 		foreach ( $addon['options'] as $option ) {
-			if ( in_array( strtolower( sanitize_title( $option['label'] ) ), array_map( 'strtolower', array_values( $value ) ) ) ) {
-				$cart_item_data[] = array(
+			if ( in_array( strtolower( sanitize_title( $option['label'] ) ), array_map( 'strtolower', array_values( $data[0] ) ) ) ) {
+				$addon_data[] = array(
 					'name'  => $addon['name'],
 					'value' => $option['label'] . ': Sku:' . $option['sku'],
 					'price' => $option['price'],
@@ -144,5 +135,5 @@
 				);
 			}
 		}
-		return $cart_item_data;
+		return $addon_data;
 	}
