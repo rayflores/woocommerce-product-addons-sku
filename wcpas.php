@@ -73,6 +73,7 @@
 		$addon_option_label       = $_POST['product_addon_option_label'];
 		$addon_option_price       = $_POST['product_addon_option_price'];
 		$addon_option_image       = $_POST['product_addon_option_image'];
+        $addon_option_price_type  = $_POST['product_addon_option_price_type'];
 		
 		
 		
