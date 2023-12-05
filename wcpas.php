@@ -130,6 +130,10 @@
 					'name'  => $addon['name'],
 					'value' => $option['label'] . ': Sku:' . $option['sku'],
 					'price' => $option['price'],
+					'field_name' => $addon['field_name'],
+					'field_type' => $addon['type'],
+					'id'         => isset( $addon[ 'id' ] ) ? $addon[ 'id' ] : 0,
+					'price_type' => $option['price_type'],
 					'sku' => $option['sku']
 				);
 			}
