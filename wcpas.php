@@ -15,9 +15,13 @@
 /**
  * Enqueue styles for WooCommerce Product Addons SKUs.
  *
+ * @param string $hook The current admin page hook.
  * @return void
  */
-function wcpas_enqueue_styles() {
+function wcpas_enqueue_styles( $hook ) {
+	if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+		return;
+	}
 	wp_enqueue_style( 'wcpascss', plugins_url( '/css/wcpas.css', __FILE__ ), array( 'woocommerce_product_addons_css' ) );
 }
 add_action( 'admin_enqueue_scripts', 'wcpas_enqueue_styles' );
