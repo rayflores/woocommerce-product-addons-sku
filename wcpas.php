@@ -200,3 +200,37 @@ function apg_save_cart_item_data( $data, $addon ) {
 	return $data;
 }
 add_filter( 'woocommerce_product_addon_cart_item_data', 'apg_save_cart_item_data', 10, 2 );
+
+/**
+ * Ensure add-on SKU is persisted in order line item meta.
+ *
+ * @param array                 $meta_data Order line item meta data from Product Add-Ons.
+ * @param array                 $addon     Add-on cart item data.
+ * @param WC_Order_Item_Product $item      Order item object.
+ * @param array                 $values    Cart item values.
+ * @return array
+ */
+function apg_add_sku_to_order_line_item_meta( $meta_data, $addon, $item, $values ) {
+	if ( empty( $addon['sku'] ) ) {
+		return $meta_data;
+	}
+
+	$sku = sanitize_text_field( $addon['sku'] );
+
+	if ( '' === $sku ) {
+		return $meta_data;
+	}
+
+	if ( ! isset( $meta_data['value'] ) ) {
+		$meta_data['value'] = '';
+	}
+
+	if ( false === stripos( $meta_data['value'], 'SKU:' ) ) {
+		$meta_data['value'] .= ' | SKU: ' . $sku;
+	}
+
+	$meta_data['sku'] = $sku;
+
+	return $meta_data;
+}
+add_filter( 'woocommerce_product_addons_order_line_item_meta', 'apg_add_sku_to_order_line_item_meta', 10, 4 );
