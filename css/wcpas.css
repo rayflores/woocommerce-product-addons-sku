@@ -1,28 +1,45 @@
 .wc-pao-addon-content label {
-    float: none!important;
-    margin-left: 0!important;
+    float: none !important;
+    margin-left: 0 !important;
 }
+
+/* Extend the grid from 14 to 16 columns to fit the SKU column */
+.wc-pao-addon-content-headers,
+.wc-pao-addon-option-row {
+    grid-template-columns: 20px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 20px 20px 20px;
+}
+
+/* Cap the price header so it doesn't stretch to the new end of the grid */
 .wc-pao-addon-content-price-header {
-    padding-top: 8px;
-    grid-column: 8/span 3;
-    background-color: #f5f5f5;
-    margin-right: -15px;
+    grid-column: 10 / 12;
 }
-.wc-pao-addon-content-price-type {
-    align-self: center;
-    grid-column: 8/10;
-}
-.wc-pao-addon-content-price {
-    align-self: center;
-    grid-column: 10/11;
-}
+
+/* SKU column header: columns 12–14 */
 .wc-pao-addon-content-sku-header {
     padding-top: 8px;
-    grid-column: 11/span 3;
+    grid-column: 12 / 14;
     background-color: #f5f5f5;
     margin-right: -15px;
+    display: flex;
+    align-items: center;
 }
+
+/* SKU input cell: columns 12–14 */
 .wc-pao-addon-content-sku {
     align-self: center;
-    grid-column: 11/span 2;
+    grid-column: 12 / 14;
+}
+
+/* Shift sort handle, visibility, and remove to their new column positions */
+.wc-pao-addon-option-row .wc-pao-addon-sort-handle {
+    grid-column: 14 / 15;
+}
+
+.wc-pao-addon-content-visibility {
+    grid-column: 15 / 16;
+}
+
+.wc-pao-addon-content-remove,
+.checkboxes .wc-pao-addon-content-remove {
+    grid-column: 16 / 17;
 }

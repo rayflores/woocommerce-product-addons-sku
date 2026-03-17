@@ -15,9 +15,13 @@
 /**
  * Enqueue styles for WooCommerce Product Addons SKUs.
  *
+ * @param string $hook The current admin page hook.
  * @return void
  */
-function wcpas_enqueue_styles() {
+function wcpas_enqueue_styles( $hook ) {
+	if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+		return;
+	}
 	wp_enqueue_style( 'wcpascss', plugins_url( '/css/wcpas.css', __FILE__ ), array( 'woocommerce_product_addons_css' ) );
 }
 add_action( 'admin_enqueue_scripts', 'wcpas_enqueue_styles' );
@@ -90,46 +94,19 @@ function get_new_addon_option() {
  * @return array
  */
 function apg_save_checkbox_sku_field( $data, $i ) {
-	// Verify nonce for security.
-	if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), 'wc_pao_nonce' ) ) {
+	if ( empty( $data['options'] ) || ! is_array( $data['options'] ) ) {
 		return $data;
 	}
 
-    // phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-	$addon_option_sku        = isset( $_POST['product_addon_option_sku'] ) ? wp_unslash( $_POST['product_addon_option_sku'] ) : array();
-	$addon_option_label      = isset( $_POST['product_addon_option_label'] ) ? wp_unslash( $_POST['product_addon_option_label'] ) : array();
-	$addon_option_price_type = isset( $_POST['product_addon_option_price_type'] ) ? wp_unslash( $_POST['product_addon_option_price_type'] ) : array();
-	$addon_option_price      = isset( $_POST['product_addon_option_price'] ) ? wp_unslash( $_POST['product_addon_option_price'] ) : array();
-	$addon_option_image      = isset( $_POST['product_addon_option_image'] ) ? wp_unslash( $_POST['product_addon_option_image'] ) : array();
-    // phpcs:enable
+	// phpcs:disable WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	$addon_option_sku = isset( $_POST['product_addon_option_sku'] ) ? wp_unslash( $_POST['product_addon_option_sku'] ) : array();
+	// phpcs:enable
 
-	$addon_options = array();
+	$option_sku = isset( $addon_option_sku[ $i ] ) && is_array( $addon_option_sku[ $i ] ) ? $addon_option_sku[ $i ] : array();
 
-	if ( isset( $addon_option_label[ $i ] ) ) {
-		$option_label      = $addon_option_label[ $i ];
-		$option_price      = $addon_option_price[ $i ];
-		$option_price_type = $addon_option_price_type[ $i ];
-		$option_image      = $addon_option_image[ $i ];
-		$option_sku        = $addon_option_sku[ $i ];
-
-		$option_label_count = count( $option_label );
-		for ( $ii = 0; $ii < $option_label_count; $ii++ ) {
-			$label      = sanitize_text_field( $option_label[ $ii ] );
-			$price      = wc_format_decimal( sanitize_text_field( $option_price[ $ii ] ) );
-			$image      = sanitize_text_field( $option_image[ $ii ] );
-			$price_type = sanitize_text_field( $option_price_type[ $ii ] );
-			$sku        = sanitize_text_field( $option_sku[ $ii ] );
-
-			$addon_options[] = array(
-				'label'      => $label,
-				'price'      => $price,
-				'image'      => $image,
-				'price_type' => $price_type,
-				'sku'        => $sku,
-			);
-		}
+	foreach ( $data['options'] as $ii => $option ) {
+		$data['options'][ $ii ]['sku'] = isset( $option_sku[ $ii ] ) ? sanitize_text_field( $option_sku[ $ii ] ) : '';
 	}
-	$data['options'] = $addon_options;
 
 	return $data;
 }
@@ -163,16 +140,60 @@ function apg_save_cart_item_data( $data, $addon ) {
 		return $data;
 	}
 
-	$data_values = array_map( 'strtolower', array_values( $data[0] ) );
+	$sku_by_option = array();
 
 	foreach ( $addon['options'] as $option ) {
-		if ( ! empty( $option['label'] ) && in_array( strtolower( $option['label'] ), $data_values, true ) ) {
-			$data[] = array(
-				'name'  => $addon['name'],
-				'value' => $option['label'] . ': Sku:' . $option['sku'],
-				'price' => $option['price'],
-				'sku'   => $option['sku'],
-			);
+		if ( empty( $option['label'] ) ) {
+			continue;
+		}
+
+		$normalized_label                   = strtolower( sanitize_title( $option['label'] ) );
+		$sku_by_option[ $normalized_label ] = array(
+			'sku'        => isset( $option['sku'] ) ? sanitize_text_field( $option['sku'] ) : '',
+			'price_type' => isset( $option['price_type'] ) ? $option['price_type'] : 'flat_fee',
+			'price'      => isset( $option['price'] ) ? (float) $option['price'] : 0,
+		);
+	}
+
+	foreach ( $data as $index => $cart_addon ) {
+		if ( empty( $cart_addon['value'] ) ) {
+			continue;
+		}
+
+		$cart_option_key = strtolower( sanitize_title( $cart_addon['value'] ) );
+
+		if ( ! isset( $sku_by_option[ $cart_option_key ] ) ) {
+			continue;
+		}
+
+		$matched_option = $sku_by_option[ $cart_option_key ];
+
+		if ( ! isset( $data[ $index ]['name'] ) ) {
+			$data[ $index ]['name'] = isset( $addon['name'] ) ? sanitize_text_field( $addon['name'] ) : '';
+		}
+
+		if ( ! isset( $data[ $index ]['field_name'] ) ) {
+			$data[ $index ]['field_name'] = isset( $addon['field_name'] ) ? $addon['field_name'] : '';
+		}
+
+		if ( ! isset( $data[ $index ]['field_type'] ) ) {
+			$data[ $index ]['field_type'] = isset( $addon['type'] ) ? $addon['type'] : '';
+		}
+
+		if ( ! isset( $data[ $index ]['price_type'] ) ) {
+			$data[ $index ]['price_type'] = $matched_option['price_type'];
+		}
+
+		if ( ! isset( $data[ $index ]['price'] ) ) {
+			$data[ $index ]['price'] = $matched_option['price'];
+		}
+
+		if ( ! empty( $matched_option['sku'] ) ) {
+			$data[ $index ]['sku'] = $matched_option['sku'];
+
+			if ( false === strpos( $data[ $index ]['value'], 'Sku:' ) ) {
+				$data[ $index ]['value'] .= ': Sku:' . $matched_option['sku'];
+			}
 		}
 	}
 
